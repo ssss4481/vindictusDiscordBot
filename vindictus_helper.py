@@ -22,6 +22,7 @@ class polls:
         guild_id = str(guild_id)
         if(guild_id not in self.data):
             self.data[guild_id] = {}
+            self.sync_json()
         return
 
     def poll_exist(self, guild_id, poll_name):

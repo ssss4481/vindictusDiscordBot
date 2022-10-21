@@ -1,4 +1,10 @@
 # encoding: utf-8
+########################################
+# Author: Andrew Chen (github: ssss4481)
+# Date: 2022/10/21
+# Contact: ssss4480@gmail.com
+########################################
+
 import random
 import time
 import datetime
@@ -29,7 +35,6 @@ async def on_ready():
 
 @bot.slash_command(name = "抽一個", description = "args:選項1 選項2 選項3...(記得用空格分開選項)")
 async def random_choice(ctx, args):
-    print(f"{datetime.datetime.now()}random_choice: {args}")
     try:
         choice = args.strip().split()
         await ctx.respond(f"選項:{args}\n被抽到的是:{choice[random.randint(0, len(choice)-1)]}")
@@ -61,7 +66,6 @@ async def data_init(ctx):
 team_build_usage = "隊伍數量 - 隊長池 - 隊員池1 - 隊員池2 - 隊員池3 -... - 隊員池n\n各池的隊員請用半形空白分格\n隊長池中未獲選為隊長者\n目前預設放入第1池。"
 @bot.slash_command(name = "分隊", description = team_build_usage)
 async def team_build(ctx, args):
-    print(f"{datetime.datetime.now()}team_builder with: {args}")
     try:
         team_num, member_list = vt.partyBuilder.build_list(args)
         leader_list = vt.partyBuilder.leader_fix(team_num, member_list)
@@ -74,8 +78,8 @@ async def team_build(ctx, args):
     except:
         await except_handler(ctx)
 
-
-
+###############################################
+#####################event#####################
 async def get_all_events_options(ctx: discord.AutocompleteContext):
     global events
     return sorted(list(events.get_events_set(ctx.interaction.guild_id)))
@@ -138,10 +142,10 @@ async def event_register_info(ctx: discord.AutocompleteContext,
     try:
         name_list = list(events.get_event_registered_dict(ctx.guild_id, event_name).keys())
         if(len(name_list) == 0):
-            await ctx.respond("目前還沒有人報名喔")
+            await ctx.respond(f"\"{event_name}\"目前還沒有人報名喔")
         else:
             name_output = "\n".join(name_list)
-            output = f"{event_name}報名資料如下:\n{name_output}"
+            output = f"\"{event_name}\"報名資料如下:\n{name_output}\n共計{len(name_list)}人。"
             await ctx.respond(output)
     except:
         await except_handler(ctx)
@@ -156,45 +160,42 @@ async def register(ctx: discord.AutocompleteContext,
                     user_name:str):
     global events
     try:
-        print(event_name, user_name)
         if(user_name == None):
             user_name = ctx.author.name
         ret = events.register(ctx.guild_id, event_name, user_name)
         if(ret == 0):
-            await ctx.respond(f"<@{ctx.author.id}>於{event_name}報名成功(登記ID為{user_name})。")
+            await ctx.respond(f"<@{ctx.author.id}>於\"{event_name}\"報名成功(登記ID為{user_name})。")
         elif(ret == -1):
-            await ctx.respond(f"{user_name}已經報名，請確認是否重複報名。")
+            await ctx.respond(f"\"{user_name}\"已經報名\"{event_name}\"，請確認是否重複報名。")
     except:
         await except_handler(ctx)
     return
 
 @bot.slash_command(name="取消報名活動")
 @option("event_name", description="選擇欲取消報名的活動", autocomplete=get_all_events_options)
-@option("user_name", description="暱稱，可留白，預設使用DC暱稱，也可自行輸入喜歡的ID", required=False, default=None)
+@option("user_name", description="暱稱，可不填，預設使用DC暱稱，也可自行輸入喜歡的ID", required=False, default=None)
 async def unregister(ctx: discord.AutocompleteContext,
                     event_name:str,
                     user_name:str):
     global events
     try:
-        print(event_name, user_name)
         if(user_name == None):
             user_name = ctx.author.name
         ret = events.unregister(ctx.guild_id, event_name, user_name)
         if(ret == 0):
-            await ctx.respond(f"<@{ctx.author.id}>取消報名{event_name}，取消報名之ID為{user_name}。")
+            await ctx.respond(f"<@{ctx.author.id}>取消報名\"{event_name}\"，取消報名之ID為\"{user_name}\"。")
         elif(ret == -1):
-            await ctx.respond(f"{user_name}並未報名{event_name}。")
+            await ctx.respond(f"\"{user_name}\"並未報名\"{event_name}\"。")
 
     except:
         await except_handler(ctx)
     return
+#####################event#####################
+###############################################
 
 
-
-
-
-
-###poll
+##############################################
+#####################poll#####################
 
 async def get_all_polls(ctx: discord.AutocompleteContext):
     global polls
@@ -247,7 +248,7 @@ async def vote(ctx: discord.AutocompleteContext,
         user_name = str(ctx.author.id)
         ret = polls.vote(ctx.guild_id, poll_name, user_name, choice)
         if(ret == 0):
-            await ctx.respond(f"<@{user_name}>於\"{poll_name}\"投票成功。選項為{choice}\n")
+            await ctx.respond(f"<@{user_name}>於\"{poll_name}\"投票成功。投給了\"{choice}\"。\n")
         elif(ret == -1):
             await ctx.respond(f"投票\"{poll_name}\"失敗，可能不存在這項投票或選項。")
         elif(ret == -2):
@@ -269,6 +270,7 @@ async def result_of_poll(ctx: discord.AutocompleteContext,
             ret = dict(sorted(ret.items(), key=lambda item: item[1], reverse=True))
             output = f"{poll_name}當前投票結果為:\n"
             output += "\n".join(["{0:<10}:{1:>2}票".format(key, value) for key, value in ret.items()])
+            output += f"共計{len(ret)}人投票。"
             await ctx.respond(output)
     except:
         await except_handler(ctx)
@@ -324,6 +326,8 @@ async def unlock_poll(ctx: discord.AutocompleteContext,
     except:
         await except_handler(ctx)
 
+#####################poll#####################
+##############################################
 
 if __name__ == "__main__":
     bot.run("Your bot TOKEN")
