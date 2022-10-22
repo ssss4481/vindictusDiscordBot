@@ -4,27 +4,18 @@
 # Date: 2022/10/21
 # Contact: ssss4480@gmail.com
 ########################################
-
 import random
 import time
 import datetime
-
 import discord
-from discord.commands import option
-
+#from discord.commands import option
 import vindictus_helper as vt
 
-
 random.seed(int(time.time()))
-
-
 bot = discord.Bot()
-
 events = vt.events()
 polls = vt.polls()
 
-
-#print(data_base.data)
 async def except_handler(ctx):
     await ctx.respond(f"發生錯誤 請聯絡水豚俠")
 
@@ -33,16 +24,19 @@ async def on_ready():
     print(f"{datetime.datetime.now()}:{bot.user} is ready and online!")
 
 
-@bot.slash_command(name = "抽一個", description = "args:選項1 選項2 選項3...(記得用空格分開選項)")
-async def random_choice(ctx, args):
+@bot.slash_command(name = "抽一個", description = "從選項清單中挑一個出來")
+async def random_choice(ctx,
+                        args:discord.Option(name="選項清單", description="選項1 選項2 選項3...(記得用空格分開選項)")):
     try:
         choice = args.strip().split()
         await ctx.respond(f"選項:{args}\n被抽到的是:{choice[random.randint(0, len(choice)-1)]}")
     except:
         await except_handler(ctx)
 
-@bot.slash_command(name = "附魔模擬器", description = "輸入成功機率%數(整數 後面不要加百分比符號 例如30%就輸入30)")
-async def capy_hater(ctx, probability):
+
+@bot.slash_command(name = "附魔模擬器" )
+async def capy_hater(ctx,
+                    probability:discord.Option(name="隊伍名單", description="輸入成功機率%數(整數 後面不要加百分比符號 例如30%就輸入30)")):
     threshold = int(probability)
     num = random.randint(1, 100)
     if(num <= threshold):
@@ -59,13 +53,14 @@ async def data_init(ctx):
         polls.guild_init(ctx.guild_id)
         await ctx.respond("初始化完成")
     except:
-        print(f"{datetime.datetime.now()}team_builder with: {ctx.guild_id}")
+        print(f"{datetime.datetime.now()}init with: {ctx.guild_id}")
         await except_handler(ctx)
 
 
 team_build_usage = "隊伍數量 - 隊長池 - 隊員池1 - 隊員池2 - 隊員池3 -... - 隊員池n\n各池的隊員請用半形空白分格\n隊長池中未獲選為隊長者\n目前預設放入第1池。"
-@bot.slash_command(name = "分隊", description = team_build_usage)
-async def team_build(ctx, args):
+@bot.slash_command(name="分隊", description="根據輸入的隊伍數量，從隊長池中挑選對應數量的隊長，沒被選到的會放入隊員池1，接著依序將各個隊員池以S型分配到各隊。")
+async def team_build(ctx,
+                    args:discord.Option(name="隊伍名單", description=team_build_usage)):
     try:
         team_num, member_list = vt.partyBuilder.build_list(args)
         leader_list = vt.partyBuilder.leader_fix(team_num, member_list)
@@ -92,7 +87,8 @@ async def get_deletable_events_options(ctx: discord.AutocompleteContext):
     return sorted(list(sets))
 
 @bot.slash_command(name="新增活動")
-async def new_event(ctx, event_name):
+async def new_event(ctx,
+                    event_name:discord.Option(name="活動名稱", description="選擇欲新增的活動名稱")):
     global events
     try:
         ret = events.new_event(ctx.guild_id, event_name)
@@ -102,12 +98,10 @@ async def new_event(ctx, event_name):
             await ctx.respond(f"活動\"{event_name}\"新增失敗，可能是存在同名活動，請確認後再次新增。")
     except:
         await except_handler(ctx)
-    return
 
 @bot.slash_command(name="刪除活動")
-@option("event_name", description="選擇欲刪除的活動", autocomplete=get_deletable_events_options)
 async def del_event(ctx: discord.AutocompleteContext,
-                    event_name):
+                    event_name:discord.Option(name="活動名稱", description="選擇欲刪除的活動(不包含絕命戰、時空扭曲)", autocomplete=get_deletable_events_options)):
     global events
     try:
         ret = events.del_event(ctx.guild_id, event_name)
@@ -117,12 +111,10 @@ async def del_event(ctx: discord.AutocompleteContext,
             await ctx.respond(f"活動\"{event_name}\"並不存在，無法刪除。")
     except:
         await except_handler(ctx)
-    return
 
 @bot.slash_command(name="重置活動")
-@option("event_name", description="選擇欲重置的活動", autocomplete=get_all_events_options)
 async def reset_event(ctx: discord.AutocompleteContext,
-                    event_name):
+                    event_name:discord.Option(name="活動名稱", description="選擇欲重置的活動", autocomplete=get_all_events_options)):
     global events
     try:
         ret = events.reset_event(ctx.guild_id, event_name)
@@ -132,12 +124,10 @@ async def reset_event(ctx: discord.AutocompleteContext,
             await ctx.respond(f"活動\"{event_name}\"並不存在，無法重置。")
     except:
         await except_handler(ctx)
-    return
 
 @bot.slash_command(name="查詢活動報名資料")
-@option("event_name", description="選擇欲查詢的活動", autocomplete=get_all_events_options)
 async def event_register_info(ctx: discord.AutocompleteContext,
-                            event_name: str):
+                            event_name:discord.Option(name="活動名稱", description="選擇查詢報名資料的活動", autocomplete=get_all_events_options)):
     global events
     try:
         name_list = list(events.get_event_registered_dict(ctx.guild_id, event_name).keys())
@@ -149,15 +139,12 @@ async def event_register_info(ctx: discord.AutocompleteContext,
             await ctx.respond(output)
     except:
         await except_handler(ctx)
-    return
 
 
 @bot.slash_command(name="報名活動")
-@option("event_name", description="選擇欲報名的活動", autocomplete=get_all_events_options)
-@option("user_name", description="暱稱，可留白，預設使用DC暱稱，也可以自行輸入喜歡的ID", required=False, default=None)
 async def register(ctx: discord.AutocompleteContext,
-                    event_name:str,
-                    user_name:str):
+                    event_name:discord.Option(name="活動名稱", description="選擇欲報名的活動", autocomplete=get_all_events_options),
+                    user_name:discord.Option(name="填寫暱稱", description="可不填，預設使用DC暱稱，也可自行輸入喜歡的ID", required=False, default=None)):
     global events
     try:
         if(user_name == None):
@@ -169,14 +156,11 @@ async def register(ctx: discord.AutocompleteContext,
             await ctx.respond(f"\"{user_name}\"已經報名\"{event_name}\"，請確認是否重複報名。")
     except:
         await except_handler(ctx)
-    return
 
 @bot.slash_command(name="取消報名活動")
-@option("event_name", description="選擇欲取消報名的活動", autocomplete=get_all_events_options)
-@option("user_name", description="暱稱，可不填，預設使用DC暱稱，也可自行輸入喜歡的ID", required=False, default=None)
 async def unregister(ctx: discord.AutocompleteContext,
-                    event_name:str,
-                    user_name:str):
+                    event_name:discord.Option(name="活動名稱", description="選擇欲取消報名的活動", autocomplete=get_all_events_options),
+                    user_name:discord.Option(name="填寫暱稱", description="可不填，預設使用DC暱稱，也可自行輸入喜歡的ID", required=False, default=None)):
     global events
     try:
         if(user_name == None):
@@ -186,10 +170,8 @@ async def unregister(ctx: discord.AutocompleteContext,
             await ctx.respond(f"<@{ctx.author.id}>取消報名\"{event_name}\"，取消報名之ID為\"{user_name}\"。")
         elif(ret == -1):
             await ctx.respond(f"\"{user_name}\"並未報名\"{event_name}\"。")
-
     except:
         await except_handler(ctx)
-    return
 #####################event#####################
 ###############################################
 
@@ -205,11 +187,10 @@ async def get_poll_options(ctx: discord.AutocompleteContext):
     global polls
     return sorted(list(polls.get_poll_options(ctx.interaction.guild_id, ctx.options["poll_name"])))
 
-
 @bot.slash_command(name="新增投票")
-@option("poll_name", description="輸入投票名稱")
-@option("options", description="輸入選項，各選項之間請用空格區分")
-async def new_poll(ctx, poll_name, options):
+async def new_poll(ctx,
+                poll_name: discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls),
+                options: discord.Option(name="選項", description="輸入選項，各選項之間請用空格區分")):
     global polls
     try:
         ret = polls.new_poll(ctx.guild_id, poll_name, options.split())
@@ -223,9 +204,8 @@ async def new_poll(ctx, poll_name, options):
 
 
 @bot.slash_command(name="刪除投票")
-@option("poll_name", description="選擇投票名稱", autocomplete=get_all_polls)
 async def del_poll(ctx: discord.AutocompleteContext,
-                    poll_name:str):
+                    poll_name: discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls)):
     global polls
     try:
         ret = polls.del_poll(ctx.guild_id, poll_name)
@@ -238,11 +218,9 @@ async def del_poll(ctx: discord.AutocompleteContext,
 
 
 @bot.slash_command(name="投票")
-@option("poll_name", description="選擇投票名稱", autocomplete=get_all_polls)
-@option("choice", description="選擇投票選項", autocomplete=get_poll_options)
 async def vote(ctx: discord.AutocompleteContext,
-                    poll_name:str,
-                    choice:str):
+                poll_name: discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls),
+                choice: discord.Option(name="選擇", description="選擇欲投票的選項", autocomplete=get_poll_options)):
     global polls
     try:
         user_name = str(ctx.author.id)
@@ -258,9 +236,8 @@ async def vote(ctx: discord.AutocompleteContext,
 
 
 @bot.slash_command(name="開票")
-@option("poll_name", description="選擇投票名稱", autocomplete=get_all_polls)
 async def result_of_poll(ctx: discord.AutocompleteContext,
-                    poll_name:str):
+                        poll_name: discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls)):
     global polls
     try:
         ret = polls.get_result_dict(ctx.guild_id, poll_name)
@@ -277,9 +254,8 @@ async def result_of_poll(ctx: discord.AutocompleteContext,
 
 
 @bot.slash_command(name="亮票")
-@option("poll_name", description="選擇投票名稱", autocomplete=get_all_polls)
 async def state_of_vote(ctx: discord.AutocompleteContext,
-                    poll_name:str):
+                    poll_name:discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls)):
     global polls
     try:
         ret = polls.get_poll_vote_record(ctx.guild_id, poll_name)
@@ -295,15 +271,13 @@ async def state_of_vote(ctx: discord.AutocompleteContext,
         await except_handler(ctx)
 
 
-@bot.slash_command(name="鎖定投票")
-@option("poll_name", description="選擇投票名稱", autocomplete=get_all_polls)
+@bot.slash_command(name="鎖定投票", description="投票被鎖定期間不能進行投票")
 async def lock_poll(ctx: discord.AutocompleteContext,
-                    poll_name:str):
+                    poll_name: discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls)):
     global polls
     try:
         print(ctx.guild_id, poll_name)
         ret = polls.lock_poll(ctx.guild_id, poll_name)
-        print("after ret")
         if(ret == 0):
             await ctx.respond(f"\"{poll_name}\"投票上鎖成功。")
         elif(ret == -1):
@@ -312,10 +286,9 @@ async def lock_poll(ctx: discord.AutocompleteContext,
         await except_handler(ctx)
 
 
-@bot.slash_command(name="解鎖投票")
-@option("poll_name", description="選擇投票名稱", autocomplete=get_all_polls)
+@bot.slash_command(name="解鎖投票", description="投票未鎖定期間可以進行投票")
 async def unlock_poll(ctx: discord.AutocompleteContext,
-                    poll_name:str):
+                    poll_name: discord.Option(name="投票名稱", description="選擇投票名稱", autocomplete=get_all_polls)):
     global polls
     try:
         ret = polls.unlock_poll(ctx.guild_id, poll_name)

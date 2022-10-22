@@ -261,6 +261,6 @@ class partyBuilder:
     def out_string(team_composition):
         ret = ""
         for team in team_composition:
-            ret += (f"船長: {team[0]}\n船員: {' '.join(team[1::])}\n\n")
+            ret += (f"隊長: {team[0]}\n隊員: {' '.join(team[1::])}\n\n")
         return ret
 
