@@ -17,7 +17,7 @@ events = vt.events()
 polls = vt.polls()
 
 async def except_handler(ctx):
-    await ctx.respond(f"發生錯誤 請聯絡水豚俠")
+    await ctx.respond(f"發生錯誤。\n如果是在使用活動、投票相關功能時看到這則訊息，可以先使用指令\"/資料初始化\"還原所有資料到初始狀態再繼續嘗試。\n若還是有同樣的問題，請聯絡水豚。")
 
 @bot.event
 async def on_ready():
@@ -44,20 +44,26 @@ async def capy_hater(ctx,
     else:
         await ctx.respond(f"成功機率{threshold}%，失敗")
 
-@bot.slash_command(name="資料初始化", description= "初次使用資料紀錄功能前請執行此指令，再次執行不會重置資料")
-async def data_init(ctx):
+@bot.slash_command(name="資料初始化", description= "還原所有資料到初始狀態。")
+async def data_init(ctx,
+                    option:discord.Option(name="確定", description="輸入\"確定\"才能執行", choices=["確定", "取消"])):
     global events
     global polls
     try:
-        events.guild_init(ctx.guild_id)
-        polls.guild_init(ctx.guild_id)
-        await ctx.respond("初始化完成")
+        if(option == "確定"):
+            events.guild_init(ctx.guild_id)
+            polls.guild_init(ctx.guild_id)
+            await ctx.respond("初始化完成。")
+        elif(option == "取消"):
+            await ctx.respond("未執行初始化。")
+        else:
+            await ctx.respond(f"未知的選項:{option}，未執行初始化。")
     except:
-        print(f"{datetime.datetime.now()}init with: {ctx.guild_id}")
+        print(f"{datetime.datetime.now()}init exception with: {ctx.guild_id}")
         await except_handler(ctx)
 
 
-team_build_usage = "隊伍數量 - 隊長池 - 隊員池1 - 隊員池2 - 隊員池3 -... - 隊員池n\n各池的隊員請用半形空白分格\n隊長池中未獲選為隊長者\n目前預設放入第1池。"
+team_build_usage = "隊伍數量(阿拉伯數字) - 隊長池 - 隊員池1 - 隊員池2 - 隊員池3 - ... - 隊員池n\n各池中的成員請用半形空白分隔，各池之間用減號-分隔\n隊長池中未獲選為隊長者，目前預設放入第1池。"
 @bot.slash_command(name="分隊", description="根據輸入的隊伍數量，從隊長池中挑選對應數量的隊長，沒被選到的會放入隊員池1，接著依序將各個隊員池以S型分配到各隊。")
 async def team_build(ctx,
                     args:discord.Option(name="隊伍名單", description=team_build_usage)):

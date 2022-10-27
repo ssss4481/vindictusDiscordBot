@@ -20,9 +20,8 @@ class polls:
 
     def guild_init(self, guild_id):
         guild_id = str(guild_id)
-        if(guild_id not in self.data):
-            self.data[guild_id] = {}
-            self.sync_json()
+        self.data[guild_id] = {}
+        self.sync_json()
         return
 
     def poll_exist(self, guild_id, poll_name):
@@ -132,11 +131,10 @@ class events:
 
     def guild_init(self, guild_id):
         guild_id = str(guild_id)
-        if(guild_id not in self.data):
-            self.data[guild_id] = {}
-            for key in self.fixed_events:
-                self.data[guild_id][key] = {}
-            self.sync_json()
+        self.data[guild_id] = {}
+        for key in self.fixed_events:
+            self.data[guild_id][key] = {}
+        self.sync_json()
         return
 
     def event_exist(self, guild_id, event_name):
