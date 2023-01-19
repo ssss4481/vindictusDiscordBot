@@ -28,7 +28,7 @@ class polls:
         return poll_name in self.data[guild_id]
 
     def vote_exist(self, guild_id, poll_name, user_name):
-        return user_name in self.get_poll_vote_record(guild_id, poll_name)#####
+        return user_name in self.get_poll_vote_record(guild_id, poll_name)
 
     def get_polls_set(self, guild_id):
         guild_id = str(guild_id)
@@ -113,9 +113,6 @@ class polls:
 
     def unlock_poll(self, guild_id, poll_name):
         return self.lock_change(guild_id, poll_name, False)
-
-
-
 
 
 class events:
