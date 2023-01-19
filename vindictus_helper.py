@@ -36,7 +36,10 @@ class polls:
 
     def get_poll_options(self, guild_id, poll_name):
         guild_id = str(guild_id)
-        return set(self.data[guild_id][poll_name][self.options])
+        try:
+            return set(self.data[guild_id][poll_name][self.options])
+        except:
+            return None
 
     def get_poll_vote_record(self, guild_id, poll_name):
         guild_id = str(guild_id)

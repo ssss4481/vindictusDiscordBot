@@ -191,7 +191,11 @@ async def get_all_polls(ctx: discord.AutocompleteContext):
 
 async def get_poll_options(ctx: discord.AutocompleteContext):
     global polls
-    return sorted(list(polls.get_poll_options(ctx.interaction.guild_id, ctx.options["poll_name"])))
+    result = polls.get_poll_options(ctx.interaction.guild_id, ctx.options["投票名稱"])#this should refer to the key name showed on discord UI.
+    if result == None:
+        return ["此投票不存在"]
+    else:
+        return sorted(list(result))
 
 @bot.slash_command(name="新增投票")
 async def new_poll(ctx,
@@ -251,9 +255,12 @@ async def result_of_poll(ctx: discord.AutocompleteContext,
             await ctx.respond(f"名為\"{poll_name}\"之投票可能不存在。請確認後再次選擇。")
         else:
             ret = dict(sorted(ret.items(), key=lambda item: item[1], reverse=True))
-            output = f"{poll_name}當前投票結果為:\n"
+            vote_count = 0
+            for key, value in ret.items():
+                vote_count += value
+            output = f"\"{poll_name}\"當前投票結果為:\n"
             output += "\n".join(["{0:<10}:{1:>2}票".format(key, value) for key, value in ret.items()])
-            output += f"共計{len(ret)}人投票。"
+            output += f"\n共計{vote_count}人投票。"
             await ctx.respond(output)
     except:
         await except_handler(ctx)
