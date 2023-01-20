@@ -71,7 +71,7 @@ async def team_build(ctx,
         team_num, member_list = vt.partyBuilder.build_list(args)
         leader_list = vt.partyBuilder.leader_fix(team_num, member_list)
         if(leader_list == None):
-            await ctx.respond(f"發生錯誤，請檢查設定的隊伍數量是不是比提供的隊長還多，或者聯絡水豚俠。\n 使用方法:{team_build_usage}")
+            await ctx.respond(f"發生錯誤，請檢查設定的隊伍數量是不是比提供的隊長還多，或者聯絡水豚。\n 使用方法:{team_build_usage}")
             return
         team_composition = vt.partyBuilder.distribute(leader_list, member_list)
         output = vt.partyBuilder.out_string(team_composition)

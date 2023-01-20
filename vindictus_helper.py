@@ -115,13 +115,17 @@ class polls:
         return self.lock_change(guild_id, poll_name, False)
 
 
+
+
+
 class events:
     def __init__(self):
         self.data = dict()
         self.json = "events.json"
         with open(self.json) as json_file:
             self.data = json.load(json_file)
-        self.fixed_events = set(["絕命戰", "時空扭曲"])
+        self.fixed_events = set()
+        self.default_events = set(["絕命戰", "時空扭曲"])
         return
 
     def sync_json(self):
@@ -132,7 +136,7 @@ class events:
     def guild_init(self, guild_id):
         guild_id = str(guild_id)
         self.data[guild_id] = {}
-        for key in self.fixed_events:
+        for key in self.default_events:
             self.data[guild_id][key] = {}
         self.sync_json()
         return
@@ -198,9 +202,6 @@ class events:
             self.sync_json()
             return 0
         return -1
-
-
-
 
 
 class partyBuilder:
